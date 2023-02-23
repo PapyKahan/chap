@@ -1,6 +1,45 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 
+int enumerate_devices()
+{
+    ma_result result;
+    ma_context context;
+    ma_device_info* pPlaybackDeviceInfos;
+    ma_uint32 playbackDeviceCount;
+    ma_device_info* pCaptureDeviceInfos;
+    ma_uint32 captureDeviceCount;
+    ma_uint32 iDevice;
+
+    if (ma_context_init(NULL, 0, NULL, &context) != MA_SUCCESS) {
+        printf("Failed to initialize context.\n");
+        return -2;
+    }
+
+    result = ma_context_get_devices(&context, &pPlaybackDeviceInfos, &playbackDeviceCount, &pCaptureDeviceInfos, &captureDeviceCount);
+    if (result != MA_SUCCESS) {
+        printf("Failed to retrieve device information.\n");
+        return -3;
+    }
+
+    printf("Playback Devices\n");
+    for (iDevice = 0; iDevice < playbackDeviceCount; ++iDevice) {
+        printf("    %u: %s\n", iDevice, pPlaybackDeviceInfos[iDevice].name);
+    }
+
+    printf("\n");
+
+    printf("Capture Devices\n");
+    for (iDevice = 0; iDevice < captureDeviceCount; ++iDevice) {
+        printf("    %u: %s\n", iDevice, pCaptureDeviceInfos[iDevice].name);
+    }
+
+
+    ma_context_uninit(&context);
+
+    return 0;
+}
+
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
     ma_decoder* pDecoder = (ma_decoder*)pDevice->pUserData;
@@ -34,13 +73,8 @@ int main(int argc, char** argv)
         // Error.
     }
 
-    ma_device_info* pPlaybackInfos;
-    ma_uint32 playbackCount;
-    ma_device_info* pCaptureInfos;
-    ma_uint32 captureCount;
-    if (ma_context_get_devices(&context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount) != MA_SUCCESS) {
-        // Error.
-    }
+
+    enumerate_devices();
     
     ma_decoder_config config;
     config = ma_decoder_config_init(ma_format_f32, 2, 192000);
